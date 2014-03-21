@@ -17,10 +17,17 @@ app.configure(function () {
         app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
+var baseurl = '/api';
+
 // schemas
 var Schema = mongoose.Schema;
 
 var Scenario = new Schema({
+        id: { type: String, required: true },
+        password: String
+});
+
+var ScenarioProject = new Schema({
         id: { type: String, required: true },
         title: String,
         description: String,
@@ -30,7 +37,7 @@ var Scenario = new Schema({
 });
 
 var ScenarioPhase = new Schema({
-        id: { type: String, required: true },
+        projectid: { type: String, required: true },
         palette: [ScenarioItem],
         randomizepalette: Boolean,
         palettestyle: String,
@@ -41,7 +48,9 @@ var ScenarioPhase = new Schema({
 });
 
 var ScenarioItem = new Schema({
+        projectid:  { type: String, required: true },
         scenarioid: { type: String, required: true },
+        ispaletteitem: Boolean,
         text: String,
         imageurl: String,
         thumbnailurl: String,
@@ -57,15 +66,47 @@ var ScenarioItem = new Schema({
 });
 
 var ScenarioModel = mongoose.model('Scenario', Scenario);
+var ScenarioProjectModel = mongoose.model('ScenarioProject', ScenarioProject);
+var ScenarioPhaseModel = mongoose.model('ScenarioPhase', ScenarioPhase);
 var ScenarioItemModel = mongoose.model('ScenarioItem', ScenarioItem);
 
 // check for existence of the api
-app.get('/scenarioapi/api', function (req, res) {
+app.get(baseurl, function (req, res) {
         res.send('Scenario API is running');
 });
 
+// list scenarioprojects
+app.get(baseurl + '/scenarioprojects', function (req, res){
+        return ScenarioProjectModel.find(function (err, scenarioprojects) {
+                if (!err) {
+                        return res.send(scenarioprojects);
+                } else {
+                        return console.log(err);
+                }
+        });
+});
+
+// create scenarioproject
+app.post(baseurl + '/scenarioprojects', function (req, res){
+        console.log("POST: " + req.body);
+        var scenarioproject = new ScenarioProjectModel({
+                id: req.body.id,
+                title: req.body.title,
+                description: req.body.description,
+                password: req.body.password,
+        });
+        scenarioproject.save(function (err) {
+                if (!err) {
+                        return console.log("created: " + req.body.id);
+                } else {
+                        return console.log(err);
+                }
+        });
+        return res.send(scenarioproject);
+});
+
 // list scenarios
-app.get('/scenarioapi/api/scenarios', function (req, res){
+app.get(baseurl + '/scenarios', function (req, res){
         return ScenarioModel.find(function (err, scenarios) {
                 if (!err) {
                         return res.send(scenarios);
@@ -76,13 +117,11 @@ app.get('/scenarioapi/api/scenarios', function (req, res){
 });
 
 // create scenario
-app.post('/scenarioapi/api/scenarios', function (req, res){
+app.post(baseurl + '/scenarios', function (req, res){
         console.log("POST: " + req.body);
         var scenario = new ScenarioModel({
                 id: req.body.id,
-                title: req.body.title,
-                description: req.body.description,
-                password: req.body.password,
+                password: req.body.password
         });
   scenario.save(function (err) {
                 if (!err) {
@@ -95,7 +134,7 @@ app.post('/scenarioapi/api/scenarios', function (req, res){
 });
 
 // login to a scenario by :id
-app.post('/scenarioapi/api/scenarios/:id/login', function (req, res){
+app.post(baseurl + '/scenarios/:id/login', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return res.send({'result': 'ok'});
@@ -106,7 +145,7 @@ app.post('/scenarioapi/api/scenarios/:id/login', function (req, res){
 });
 
 // read scenario by :id
-app.get('/scenarioapi/api/scenarios/:id', function (req, res){
+app.get(baseurl + '/scenarios/:id', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (!err) {
                         return res.send(scenario);
@@ -117,7 +156,7 @@ app.get('/scenarioapi/api/scenarios/:id', function (req, res){
 });
 
 // update scenario by id
-app.put('/scenarioapi/api/scenarios/:id', function (req, res){
+app.put(baseurl + '/scenarios/:id', function (req, res){
         if (check_credentials(req.body.password, req.params.id)) {
                 return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                         scenario.title = req.body.title !== undefined ? req.body.title : scenario.title;
@@ -141,7 +180,7 @@ app.put('/scenarioapi/api/scenarios/:id', function (req, res){
 });
 
 // delete scenario by id
-app.delete('/scenarioapi/api/scenarios/:id', function (req, res){
+app.delete(baseurl + '/scenarios/:id', function (req, res){
         return res.send('not enabled');
 /*
         return ProductModel.find({'id' : req.params.id}, function (err, product) {
@@ -160,7 +199,7 @@ app.delete('/scenarioapi/api/scenarios/:id', function (req, res){
 });
 
 // list scenarioitems
-app.get('/scenarioapi/api/scenarios/:id/items', function (req, res){
+app.get(baseurl + '/scenarios/:id/items', function (req, res){
         return ScenarioItemModel.find({'scenarioid' : req.params.id}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
@@ -171,7 +210,7 @@ app.get('/scenarioapi/api/scenarios/:id/items', function (req, res){
 });
 
 // create scenarioitem
-app.post('/scenarioapi/api/scenarios/:id/items', function (req, res){
+app.post(baseurl + '/scenarios/:id/items', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         var scenarioitem = new ScenarioItemModel({
@@ -204,7 +243,7 @@ app.post('/scenarioapi/api/scenarios/:id/items', function (req, res){
 });
 
 // read scenarioitem by :id
-app.get('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
+app.get(baseurl + '/scenarios/:id/items/:itemid', function (req, res){
         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
                 if (!err) {
                         return res.send(scenarioitem);
@@ -215,7 +254,7 @@ app.get('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
 });
 
 // update scenarioitem by id
-app.put('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
+app.put(baseurl + '/scenarios/:id/items/:itemid', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
@@ -242,6 +281,7 @@ app.put('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
                                                 return res.send(scenarioitem);
                                         } else {
                                                 console.log('update error: ' + err);
+                                                return null;
                                         }
                                 });
                         });
@@ -252,7 +292,7 @@ app.put('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
 });
 
 // delete scenarioitem by id
-app.delete('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
+app.delete(baseurl + '/scenarios/:id/items/:itemid', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
@@ -262,6 +302,7 @@ app.delete('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
                                                 return res.send('');
                                         } else {
                                                 console.log(err);
+                                                return null;
                                         }
                                 });
                         });
