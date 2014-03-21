@@ -23,12 +23,12 @@ app.configure(function () {
 var Schema = mongoose.Schema;
 
 var Scenario = new Schema({
-        id: { type: String, required: true },
+        scenarioid: { type: String, required: true },
         password: String
 });
 
 var ScenarioProject = new Schema({
-        id: { type: String, required: true },
+        projectid: { type: String, required: true },
         title: String,
         description: String,
         password: String,
@@ -80,6 +80,7 @@ app.get(basepath, function (req, res) {
 app.get(basepath + '/projects', function (req, res){
         return ScenarioProjectModel.find(function (err, scenarioprojects) {
                 if (!err) {
+                        //fix: do not return the passwords
                         return res.send(scenarioprojects);
                 } else {
                         return console.log(err);
@@ -91,7 +92,7 @@ app.get(basepath + '/projects', function (req, res){
 app.post(basepath + '/projects', function (req, res){
         console.log("POST: " + req.body);
         var scenarioproject = new ScenarioProjectModel({
-                id: req.body.id,
+                projectid: req.body.ptojectid,
                 title: req.body.title,
                 description: req.body.description,
                 password: req.body.password,
@@ -107,7 +108,7 @@ app.post(basepath + '/projects', function (req, res){
 });
 
 // list scenarios by project id
-app.get(basepath + '/:projectid/scenarios', function (req, res){
+app.get(basepath + '/projects/:projectid/scenarios', function (req, res){
         return ScenarioModel.find({'projectid' : req.params.projectid}, function (err, scenarios) {
                 if (!err) {
                         return res.send(scenarios);
@@ -118,13 +119,13 @@ app.get(basepath + '/:projectid/scenarios', function (req, res){
 });
 
 // create scenario
-app.post(basepath + '/:projectid/scenarios', function (req, res){ //xxx
+app.post(basepath + '/projects/:projectid/scenarios', function (req, res){ //xxx
         console.log("POST: " + req.body);
         var scenario = new ScenarioModel({
                 projectid: req.body.projectid,
                 password: req.body.password
         });
-  scenario.save(function (err) {
+        scenario.save(function (err) {
                 if (!err) {
                         return console.log("created: " + req.body.id);
                 } else {
@@ -135,8 +136,8 @@ app.post(basepath + '/:projectid/scenarios', function (req, res){ //xxx
 });
 
 // login to a scenario by :id
-app.post(basepath + '/:projectid/scenarios/:id/login', function (req, res){ //xxx
-        return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
+app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/login', function (req, res){ //xxx
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return res.send({'result': 'ok'});
                 } else {
@@ -146,9 +147,10 @@ app.post(basepath + '/:projectid/scenarios/:id/login', function (req, res){ //xx
 });
 
 // read scenario by :id
-app.get(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
-        return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
+app.get(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (!err) {
+                        //fix: return also scenario phases at the same time
                         return res.send(scenario);
                 } else {
                         return console.log(err);
@@ -156,8 +158,8 @@ app.get(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
         });
 });
 
-// read scenariophases by :projectid
-app.get(basepath + '/:projectid/phases', function (req, res){
+// list scenariophases by :projectid
+app.get(basepath + '/projects/:projectid/phases', function (req, res){
         return ScenarioPhaseModel.find({'projectid' : req.params.projectid}, function (err, scenariophases) {
                 if (!err) {
                         return res.send(scenariophases);
@@ -167,10 +169,27 @@ app.get(basepath + '/:projectid/phases', function (req, res){
         });
 });
 
+// create scenariophase
+app.post(basepath + '/projects/:projectid/phases', function (req, res){ //xxx
+        console.log("POST: " + req.body);
+        var scenariophase = new ScenarioPhaseModel({
+                projectid: req.body.projectid,
+                password: req.body.password
+        });
+        scenariophase.save(function (err) {
+                if (!err) {
+                        return console.log("created: " + req.body.projectid);
+                } else {
+                        return console.log(err);
+                }
+        });
+        return res.send(scenariophase);
+});
+
 // update scenario by id
-app.put(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
-        if (check_credentials(req.body.password, req.params.id)) {
-                return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
+app.put(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
+        if (check_credentials(req.body.password, req.params.scenarioid)) {
+                return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                         scenario.title = req.body.title !== undefined ? req.body.title : scenario.title;
                         scenario.description = req.body.description !== undefined ? req.body.description : scenario.description;
                         scenario.password = req.body.style !== undefined ? req.body.style : scenario.password;
@@ -178,7 +197,7 @@ app.put(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
 
                         return scenario.save(function (err) {
                                 if (!err) {
-                                        console.log("updated: " + req.params.id);
+                                        console.log("updated: " + req.params.scenarioid);
                                 } else {
                                         console.log(err);
                                 }
@@ -192,7 +211,7 @@ app.put(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
 });
 
 // delete scenario by id
-app.delete(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
+app.delete(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
         return res.send('not enabled');
 /*
         return ProductModel.find({'id' : req.params.id}, function (err, product) {
@@ -211,8 +230,8 @@ app.delete(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
 });
 
 // list scenarioitems
-app.get(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xxx
-        return ScenarioItemModel.find({'scenarioid' : req.params.id}, function (err, scenarioitems) {
+app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
+        return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
                 } else {
@@ -222,11 +241,11 @@ app.get(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xxx
 });
 
 // create scenarioitem
-app.post(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xxx
-        return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
+app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         var scenarioitem = new ScenarioItemModel({
-                                scenarioid: req.params.id,
+                                scenarioid: req.params.scenarioid,
                                 text: req.body.text,
                                 imageurl: req.body.imageurl,
                                 thumbnailurl: req.body.thumbnailurl,
@@ -242,7 +261,7 @@ app.post(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xx
 
                         scenarioitem.save(function (err) {
                                 if (!err) {
-                                        return console.log("created item to " + req.params.id);
+                                        return console.log("created item to " + req.params.scenarioid);
                                 } else {
                                         return console.log(err);
                                 }
@@ -254,8 +273,20 @@ app.post(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xx
         });
 });
 
+// list paletteitems
+app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/paletteitems', function (req, res){ //xxx
+        return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid, 'ispaletteitem' : true}, function (err, scenarioitems) {
+                if (!err) {
+                        return res.send(scenarioitems);
+                } else {
+                        return console.log(err);
+                }
+        });
+});
+
+
 // read scenarioitem by :id
-app.get(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res){ //xxx
+app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){ //xxx
         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
                 if (!err) {
                         return res.send(scenarioitem);
@@ -266,8 +297,8 @@ app.get(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res
 });
 
 // update scenarioitem by id
-app.put(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res){
-        return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
+app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
                                 scenarioitem.scenarioid = req.params.id;
@@ -303,8 +334,8 @@ app.put(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res
 });
 
 // delete scenarioitem by id
-app.delete(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res){
-        return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
+app.delete(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
                                 return scenarioitem.remove(function (err) {
