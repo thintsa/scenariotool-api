@@ -77,7 +77,7 @@ app.get(basepath, function (req, res) {
 });
 
 // list scenarioprojects
-app.get(basepath + '/scenarioprojects', function (req, res){
+app.get(basepath + '/projects', function (req, res){
         return ScenarioProjectModel.find(function (err, scenarioprojects) {
                 if (!err) {
                         return res.send(scenarioprojects);
@@ -88,7 +88,7 @@ app.get(basepath + '/scenarioprojects', function (req, res){
 });
 
 // create scenarioproject
-app.post(basepath + '/scenarioprojects', function (req, res){
+app.post(basepath + '/projects', function (req, res){
         console.log("POST: " + req.body);
         var scenarioproject = new ScenarioProjectModel({
                 id: req.body.id,
@@ -106,9 +106,9 @@ app.post(basepath + '/scenarioprojects', function (req, res){
         return res.send(scenarioproject);
 });
 
-// list scenarios
-app.get(basepath + '/scenarios', function (req, res){
-        return ScenarioModel.find(function (err, scenarios) {
+// list scenarios by project id
+app.get(basepath + '/:projectid/scenarios', function (req, res){
+        return ScenarioModel.find({'projectid' : req.params.projectid}, function (err, scenarios) {
                 if (!err) {
                         return res.send(scenarios);
                 } else {
@@ -118,10 +118,10 @@ app.get(basepath + '/scenarios', function (req, res){
 });
 
 // create scenario
-app.post(basepath + '/scenarios', function (req, res){
+app.post(basepath + '/:projectid/scenarios', function (req, res){ //xxx
         console.log("POST: " + req.body);
         var scenario = new ScenarioModel({
-                id: req.body.id,
+                projectid: req.body.projectid,
                 password: req.body.password
         });
   scenario.save(function (err) {
@@ -135,7 +135,7 @@ app.post(basepath + '/scenarios', function (req, res){
 });
 
 // login to a scenario by :id
-app.post(basepath + '/scenarios/:id/login', function (req, res){
+app.post(basepath + '/:projectid/scenarios/:id/login', function (req, res){ //xxx
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return res.send({'result': 'ok'});
@@ -146,7 +146,7 @@ app.post(basepath + '/scenarios/:id/login', function (req, res){
 });
 
 // read scenario by :id
-app.get(basepath + '/scenarios/:id', function (req, res){
+app.get(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (!err) {
                         return res.send(scenario);
@@ -156,8 +156,19 @@ app.get(basepath + '/scenarios/:id', function (req, res){
         });
 });
 
+// read scenariophases by :projectid
+app.get(basepath + '/:projectid/phases', function (req, res){
+        return ScenarioPhaseModel.find({'projectid' : req.params.projectid}, function (err, scenariophases) {
+                if (!err) {
+                        return res.send(scenariophases);
+                } else {
+                        return console.log(err);
+                }
+        });
+});
+
 // update scenario by id
-app.put(basepath + '/scenarios/:id', function (req, res){
+app.put(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
         if (check_credentials(req.body.password, req.params.id)) {
                 return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                         scenario.title = req.body.title !== undefined ? req.body.title : scenario.title;
@@ -181,7 +192,7 @@ app.put(basepath + '/scenarios/:id', function (req, res){
 });
 
 // delete scenario by id
-app.delete(basepath + '/scenarios/:id', function (req, res){
+app.delete(basepath + '/:projectid/scenarios/:id', function (req, res){ //xxx
         return res.send('not enabled');
 /*
         return ProductModel.find({'id' : req.params.id}, function (err, product) {
@@ -200,7 +211,7 @@ app.delete(basepath + '/scenarios/:id', function (req, res){
 });
 
 // list scenarioitems
-app.get(basepath + '/scenarios/:id/items', function (req, res){
+app.get(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xxx
         return ScenarioItemModel.find({'scenarioid' : req.params.id}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
@@ -211,7 +222,7 @@ app.get(basepath + '/scenarios/:id/items', function (req, res){
 });
 
 // create scenarioitem
-app.post(basepath + '/scenarios/:id/items', function (req, res){
+app.post(basepath + '/:projectid/scenarios/:id/items', function (req, res){ //xxx
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         var scenarioitem = new ScenarioItemModel({
@@ -244,7 +255,7 @@ app.post(basepath + '/scenarios/:id/items', function (req, res){
 });
 
 // read scenarioitem by :id
-app.get(basepath + '/scenarios/:id/items/:itemid', function (req, res){
+app.get(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res){ //xxx
         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
                 if (!err) {
                         return res.send(scenarioitem);
@@ -255,7 +266,7 @@ app.get(basepath + '/scenarios/:id/items/:itemid', function (req, res){
 });
 
 // update scenarioitem by id
-app.put(basepath + '/scenarios/:id/items/:itemid', function (req, res){
+app.put(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
@@ -281,8 +292,7 @@ app.put(basepath + '/scenarios/:id/items/:itemid', function (req, res){
                                                 console.log('updated: ' + req.params.itemid);
                                                 return res.send(scenarioitem);
                                         } else {
-                                                console.log('update error: ' + err);
-                                                return null;
+                                                return console.log('update error: ' + err);
                                         }
                                 });
                         });
@@ -293,7 +303,7 @@ app.put(basepath + '/scenarios/:id/items/:itemid', function (req, res){
 });
 
 // delete scenarioitem by id
-app.delete(basepath + '/scenarios/:id/items/:itemid', function (req, res){
+app.delete(basepath + '/:projectid/scenarios/:id/items/:itemid', function (req, res){
         return ScenarioModel.find({'id' : req.params.id}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
@@ -302,8 +312,7 @@ app.delete(basepath + '/scenarios/:id/items/:itemid', function (req, res){
                                                 console.log("removed");
                                                 return res.send('');
                                         } else {
-                                                console.log(err);
-                                                return null;
+                                                return console.log(err);
                                         }
                                 });
                         });
