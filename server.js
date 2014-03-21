@@ -8,6 +8,7 @@ var app = express();
 mongoose.connect('mongodb://localhost/scenario');
 // config
 app.configure(function () {
+        app.set('port', process.env.PORT || 3000);
         app.use(express.json());
         app.use(express.urlencoded());
         app.use(express.methodOverride());
@@ -21,17 +22,29 @@ var Schema = mongoose.Schema;
 
 var Scenario = new Schema({
         id: { type: String, required: true },
-        title: { type: String, required: false },
-        description: { type: String, required: false },
-        password: { type: String, required: false },
+        title: String,
+        description: String,
+        password: String,
         modified: { type: Date, default: Date.now },
+        phases: [ {phaseid: String, phasepos: Number} ]
+});
+
+var ScenarioPhase = new Schema({
+        id: { type: String, required: true },
+        palette: [ScenarioItem],
+        randomizepalette: Boolean,
+        palettestyle: String,
+        paletteposition: String,
+        paletteitemoffset: {x: Number, y: Number},
+        oninit: String,
+        onsubmit: String
 });
 
 var ScenarioItem = new Schema({
         scenarioid: { type: String, required: true },
-        text: { type: String, required: false },
-        imageurl: { type: String, required: false },
-        thumbnailurl: { type: String, required: false },
+        text: String,
+        imageurl: String,
+        thumbnailurl: String,
         width: { type: Number, default: 200 },
         height: { type: Number, default: 200 },
         imagewidth: { type: Number, default: 200 },
@@ -260,5 +273,8 @@ app.delete('/scenarioapi/api/scenarios/:id/items/:itemid', function (req, res){
 });
 
 // launch server
-app.listen(3000);
+app.listen(app.get('port'), function(){
+  console.log("API server listening on port " + app.get('port'));
+});
+
 

@@ -1,6 +1,6 @@
 {
-  "name": "scenariotool",
-  "description": "Scenariotool",
+  "name": "scenariotool-api",
+  "description": "Scenariotool Api",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
