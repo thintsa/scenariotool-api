@@ -304,6 +304,7 @@ app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', f
                         if (req.body.text !== undefined && req.body.text.indexOf('<') !== -1 && req.body.text.indexOf('>') !== -1) {
                                 scenarioitem.text = req.body.text;
                         }
+                        scenarioitem.scenarioid = req.params.scenarioid,
                         scenarioitem.imageurl = req.body.imageurl !== undefined ? req.body.imageurl : scenarioitem.imageurl;
                         scenarioitem.thumbnailurl = req.body.thumbnailurl !== undefined ? req.body.thumbnailurl : scenarioitem.thumbnailurl,
                         scenarioitem.text = req.body.text !== undefined ? req.body.text : scenarioitem.text;
