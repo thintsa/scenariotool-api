@@ -138,18 +138,6 @@ app.post(basepath + '/projects/:projectid/scenarios', function (req, res){ //xxx
         return res.send(scenario);
 });
 
-// login to a scenario by :id
-app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/login', function (req, res){ //xxx
-        log_call(req);
-        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
-                if (req.body.password == scenario[0].password) {
-                        return res.send({'result': 'ok'});
-                } else {
-                        return res.send({'result': 'failure', 'message': 'wrong password'});
-                }
-        });
-});
-
 // read scenario by :id
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
         log_call(req);
