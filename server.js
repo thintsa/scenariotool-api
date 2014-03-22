@@ -1,3 +1,5 @@
+var debug = true;
+
 var application_root = __dirname,
         express = require("express"),
         path = require("path"),
@@ -79,6 +81,7 @@ app.get(basepath, function (req, res) {
 
 // list scenarioprojects
 app.get(basepath + '/projects', function (req, res){
+        log_call(req);
         return ScenarioProjectModel.find(function (err, scenarioprojects) {
                 if (!err) {
                         //fix: do not return the passwords
@@ -91,16 +94,14 @@ app.get(basepath + '/projects', function (req, res){
 
 // create scenarioproject
 app.post(basepath + '/projects', function (req, res){
-        console.log("POST: " + req.body);
+        log_call(req);
         var scenarioproject = new ScenarioProjectModel({
-                projectid: req.body.ptojectid,
-                title: req.body.title,
-                description: req.body.description,
+                projectid: req.body.projectid,
                 password: req.body.password,
         });
         scenarioproject.save(function (err) {
                 if (!err) {
-                        return console.log("created: " + req.body.id);
+                        return console.log("created scenarioproject: " + req.body.projectid);
                 } else {
                         return console.log(err);
                 }
@@ -110,7 +111,8 @@ app.post(basepath + '/projects', function (req, res){
 
 // list scenarios by project id
 app.get(basepath + '/projects/:projectid/scenarios', function (req, res){
-        return ScenarioModel.find({'projectid' : req.params.projectid}, function (err, scenarios) {
+        log_call(req);
+       return ScenarioModel.find({'projectid' : req.params.projectid}, function (err, scenarios) {
                 if (!err) {
                         return res.send(scenarios);
                 } else {
@@ -121,7 +123,7 @@ app.get(basepath + '/projects/:projectid/scenarios', function (req, res){
 
 // create scenario
 app.post(basepath + '/projects/:projectid/scenarios', function (req, res){ //xxx
-        console.log("POST: " + req.body);
+        log_call(req);
         var scenario = new ScenarioModel({
                 projectid: req.body.projectid,
                 password: req.body.password
@@ -138,6 +140,7 @@ app.post(basepath + '/projects/:projectid/scenarios', function (req, res){ //xxx
 
 // login to a scenario by :id
 app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/login', function (req, res){ //xxx
+        log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return res.send({'result': 'ok'});
@@ -149,6 +152,7 @@ app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/login', function
 
 // read scenario by :id
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
+        log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (!err) {
                         //fix: return also scenario phases at the same time
@@ -161,6 +165,7 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, 
 
 // list scenariophases by :projectid
 app.get(basepath + '/projects/:projectid/phases', function (req, res){
+        log_call(req);
         return ScenarioPhaseModel.find({'projectid' : req.params.projectid}, function (err, scenariophases) {
                 if (!err) {
                         return res.send(scenariophases);
@@ -172,7 +177,7 @@ app.get(basepath + '/projects/:projectid/phases', function (req, res){
 
 // create scenariophase
 app.post(basepath + '/projects/:projectid/phases', function (req, res){ //xxx
-        console.log("POST: " + req.body);
+        log_call(req);
         var scenariophase = new ScenarioPhaseModel({
                 projectid: req.body.projectid,
                 password: req.body.password
@@ -189,6 +194,7 @@ app.post(basepath + '/projects/:projectid/phases', function (req, res){ //xxx
 
 // update scenario by id
 app.put(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
+        log_call(req);
         if (check_credentials(req.body.password, req.params.scenarioid)) {
                 return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                         scenario.title = req.body.title !== undefined ? req.body.title : scenario.title;
@@ -213,6 +219,7 @@ app.put(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, 
 
 // delete scenario by id
 app.delete(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
+        log_call(req);
         return res.send('not enabled');
 /*
         return ProductModel.find({'id' : req.params.id}, function (err, product) {
@@ -232,6 +239,7 @@ app.delete(basepath + '/projects/:projectid/scenarios/:scenarioid', function (re
 
 // list scenarioitems
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
+        log_call(req);
         return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
@@ -243,6 +251,7 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function 
 
 // create scenarioitem
 app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
+        log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         var scenarioitem = new ScenarioItemModel({
@@ -276,6 +285,7 @@ app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function
 
 // list paletteitems
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/paletteitems', function (req, res){ //xxx
+        log_call(req);
         return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid, 'ispaletteitem' : true}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
@@ -288,6 +298,7 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/paletteitems', fu
 
 // read scenarioitem by :id
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){ //xxx
+        log_call(req);
         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
                 if (!err) {
                         return res.send(scenarioitem);
@@ -299,6 +310,7 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', f
 
 // update scenarioitem by id
 app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){
+        log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
@@ -336,6 +348,7 @@ app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', f
 
 // delete scenarioitem by id
 app.delete(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){
+        log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 if (req.body.password == scenario[0].password) {
                         return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
@@ -360,4 +373,9 @@ app.listen(app.get('port'), function(){
   console.log("API server listening on port " + app.get('port'));
 });
 
-
+function log_call(req, message) {
+        if (debug) {
+                message = (message === undefined) ? '' : ' ' + message;
+                console.log('\x1b[90m' + req.method + ' ' + req.originalUrl + ' ' + JSON.stringify(req.body) + message);
+        }
+}
