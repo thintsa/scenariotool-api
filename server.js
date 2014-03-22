@@ -36,6 +36,7 @@ var ScenarioProject = new Schema({
         description: String,
         password: String,
         backgroundurl: String,
+        canvassize: {x: Number, y: Number},
         modified: { type: Date, default: Date.now },
         phases: [ {phaseid: String, phasepos: Number} ]
 });
@@ -56,6 +57,7 @@ var ScenarioItem = new Schema({
         scenarioid: { type: String, required: true },
         ispaletteitem: Boolean,
         text: String,
+        textcentered: Boolean,
         imageurl: String,
         thumbnailurl: String,
         width: { type: Number, default: 200 },
@@ -241,33 +243,30 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function 
 app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
         log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
-                if (req.body.password == scenario[0].password) {
-                        var scenarioitem = new ScenarioItemModel({
-                                scenarioid: req.params.scenarioid,
-                                text: req.body.text,
-                                imageurl: req.body.imageurl,
-                                thumbnailurl: req.body.thumbnailurl,
-                                width: req.body.width,
-                                height: req.body.height,
-                                imagewidth: req.body.imagewidth,
-                                imageheight: req.body.imageheight,
-                                posx: req.body.posx,
-                                posy: req.body.posy,
-                                posz: req.body.posz,
-                                rot: req.body.rot,
-                        });
+                var scenarioitem = new ScenarioItemModel({
+                        projectid: req.params.projectid,
+                        scenarioid: req.params.scenarioid,
+                        text: req.body.text,
+                        imageurl: req.body.imageurl,
+                        thumbnailurl: req.body.thumbnailurl,
+                        width: req.body.width,
+                        height: req.body.height,
+                        imagewidth: req.body.imagewidth,
+                        imageheight: req.body.imageheight,
+                        posx: req.body.posx,
+                        posy: req.body.posy,
+                        posz: req.body.posz,
+                        rot: req.body.rot,
+                });
 
-                        scenarioitem.save(function (err) {
-                                if (!err) {
-                                        return console.log("created item to " + req.params.scenarioid);
-                                } else {
-                                        return console.log(err);
-                                }
-                        });
-                        return res.send(scenarioitem);
-                } else {
-                        return res.send({'error': 'false credentials'});
-                }
+                scenarioitem.save(function (err) {
+                        if (!err) {
+                                return console.log("created item to " + req.params.scenarioid);
+                        } else {
+                                return console.log(err);
+                        }
+                });
+                return res.send(scenarioitem);
         });
 });
 
@@ -300,37 +299,33 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', f
 app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', function (req, res){
         log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
-                if (req.body.password == scenario[0].password) {
-                        return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
-                                scenarioitem.scenarioid = req.params.id;
-                                if (req.body.text !== undefined && req.body.text.indexOf('<') !== -1 && req.body.text.indexOf('>') !== -1) {
-                                        scenarioitem.text = req.body.text;
-                                }
-                                scenarioitem.imageurl = req.body.imageurl !== undefined ? req.body.imageurl : scenarioitem.imageurl;
-                                scenarioitem.thumbnailurl = req.body.thumbnailurl !== undefined ? req.body.thumbnailurl : scenarioitem.thumbnailurl,
-                                scenarioitem.text = req.body.text !== undefined ? req.body.text : scenarioitem.text;
-                                scenarioitem.width = req.body.width !== undefined ? req.body.width : scenarioitem.width;
-                                scenarioitem.height = req.body.height !== undefined ? req.body.height : scenarioitem.height;
-                                scenarioitem.imagewidth = req.body.imagewidth !== undefined ? req.body.imagewidth : scenarioitem.imagewidth;
-                                scenarioitem.imageheight = req.body.imageheight !== undefined ? req.body.imageheight : scenarioitem.imageheight;
-                                scenarioitem.posx = req.body.posx !== undefined ? req.body.posx : scenarioitem.posx;
-                                scenarioitem.posy = req.body.posy !== undefined ? req.body.posy : scenarioitem.posy;
-                                scenarioitem.posz = req.body.posz !== undefined ? req.body.posz : scenarioitem.posz;
-                                scenarioitem.rot = req.body.rot !== undefined ? req.body.rot : scenarioitem.rot;
-                                scenarioitem.modified = new Date();
+                return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
+                        scenarioitem.scenarioid = req.params.id;
+                        if (req.body.text !== undefined && req.body.text.indexOf('<') !== -1 && req.body.text.indexOf('>') !== -1) {
+                                scenarioitem.text = req.body.text;
+                        }
+                        scenarioitem.imageurl = req.body.imageurl !== undefined ? req.body.imageurl : scenarioitem.imageurl;
+                        scenarioitem.thumbnailurl = req.body.thumbnailurl !== undefined ? req.body.thumbnailurl : scenarioitem.thumbnailurl,
+                        scenarioitem.text = req.body.text !== undefined ? req.body.text : scenarioitem.text;
+                        scenarioitem.width = req.body.width !== undefined ? req.body.width : scenarioitem.width;
+                        scenarioitem.height = req.body.height !== undefined ? req.body.height : scenarioitem.height;
+                        scenarioitem.imagewidth = req.body.imagewidth !== undefined ? req.body.imagewidth : scenarioitem.imagewidth;
+                        scenarioitem.imageheight = req.body.imageheight !== undefined ? req.body.imageheight : scenarioitem.imageheight;
+                        scenarioitem.posx = req.body.posx !== undefined ? req.body.posx : scenarioitem.posx;
+                        scenarioitem.posy = req.body.posy !== undefined ? req.body.posy : scenarioitem.posy;
+                        scenarioitem.posz = req.body.posz !== undefined ? req.body.posz : scenarioitem.posz;
+                        scenarioitem.rot = req.body.rot !== undefined ? req.body.rot : scenarioitem.rot;
+                        scenarioitem.modified = new Date();
 
-                                return scenarioitem.save(function (err) {
-                                        if (!err) {
-                                                console.log('updated: ' + req.params.itemid);
-                                                return res.send(scenarioitem);
-                                        } else {
-                                                return console.log('update error: ' + err);
-                                        }
-                                });
+                        return scenarioitem.save(function (err) {
+                                if (!err) {
+                                        console.log('updated: ' + req.params.itemid);
+                                        return res.send(scenarioitem);
+                                } else {
+                                        return console.log('update error: ' + err);
+                                }
                         });
-                } else {
-                        return res.send({'error': 'false credentials'});
-                }
+                });
         });
 });
 
