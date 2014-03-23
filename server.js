@@ -47,6 +47,7 @@ var ScenarioPhase = new Schema({
         randomizepalette: Boolean,
         palettestyle: String,
         paletteposition: String,
+        additems: Boolean,
         paletteitemoffset: {x: Number, y: Number},
         oninit: String,
         onsubmit: String
@@ -56,6 +57,7 @@ var ScenarioItem = new Schema({
         projectid:  { type: String, required: true },
         scenarioid: { type: String, required: true },
         ispaletteitem: Boolean,
+        frompaletteitem: String,
         text: String,
         textcentered: Boolean,
         imageurl: String,
@@ -246,7 +248,10 @@ app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function
                 var scenarioitem = new ScenarioItemModel({
                         projectid: req.params.projectid,
                         scenarioid: req.params.scenarioid,
+                        ispaletteitem: req.body.ispaletteitem,
+                        frompaletteitem: req.body.frompaletteitem,
                         text: req.body.text,
+                        textcentered: req.body.textcentered,
                         imageurl: req.body.imageurl,
                         thumbnailurl: req.body.thumbnailurl,
                         width: req.body.width,
@@ -273,7 +278,7 @@ app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function
 // list paletteitems
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/paletteitems', function (req, res){ //xxx
         log_call(req);
-        return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid, 'ispaletteitem' : true}, function (err, scenarioitems) {
+        return ScenarioItemModel.find({'projectid' : req.params.projectid, 'ispaletteitem' : true}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
                 } else {
@@ -300,7 +305,7 @@ app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', f
         log_call(req);
         return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
                 return ScenarioItemModel.findById(req.params.itemid, function (err, scenarioitem) {
-                        scenarioitem.scenarioid = req.params.id;
+                        scenarioitem.projectid = req.params.projectid;
                         if (req.body.text !== undefined && req.body.text.indexOf('<') !== -1 && req.body.text.indexOf('>') !== -1) {
                                 scenarioitem.text = req.body.text;
                         }
