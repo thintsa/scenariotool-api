@@ -60,6 +60,7 @@ var ScenarioItem = new Schema({
         frompaletteitem: String,
         text: String,
         textcentered: Boolean,
+ 		axis: String,
         imageurl: String,
         thumbnailurl: String,
         width: { type: Number, default: 200 },
@@ -252,6 +253,7 @@ app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function
                         frompaletteitem: req.body.frompaletteitem,
                         text: req.body.text,
                         textcentered: req.body.textcentered,
+						axis: req.body.axis,
                         imageurl: req.body.imageurl,
                         thumbnailurl: req.body.thumbnailurl,
                         width: req.body.width,
@@ -313,6 +315,7 @@ app.put(basepath + '/projects/:projectid/scenarios/:scenarioid/items/:itemid', f
                         scenarioitem.imageurl = req.body.imageurl !== undefined ? req.body.imageurl : scenarioitem.imageurl;
                         scenarioitem.thumbnailurl = req.body.thumbnailurl !== undefined ? req.body.thumbnailurl : scenarioitem.thumbnailurl,
                         scenarioitem.text = req.body.text !== undefined ? req.body.text : scenarioitem.text;
+                        scenarioitem.axis = req.body.axis !== undefined ? req.body.axis : scenarioitem.axis;
                         scenarioitem.width = req.body.width !== undefined ? req.body.width : scenarioitem.width;
                         scenarioitem.height = req.body.height !== undefined ? req.body.height : scenarioitem.height;
                         scenarioitem.imagewidth = req.body.imagewidth !== undefined ? req.body.imagewidth : scenarioitem.imagewidth;
