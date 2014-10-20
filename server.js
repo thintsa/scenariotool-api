@@ -146,7 +146,7 @@ app.post(basepath + '/projects/:projectid/scenarios', function (req, res){ //xxx
 // read scenario by :id
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid', function (req, res){ //xxx
         log_call(req);
-        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid, 'projectid' : req.params.projectid}, function (err, scenario) {
                 if (!err) {
                         //fix: return also scenario phases at the same time
                         return res.send(scenario);
@@ -233,7 +233,7 @@ app.delete(basepath + '/projects/:projectid/scenarios/:scenarioid', function (re
 // list scenarioitems
 app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
         log_call(req);
-        return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenarioitems) {
+        return ScenarioItemModel.find({'scenarioid' : req.params.scenarioid, 'projectid' : req.params.projectid}, function (err, scenarioitems) {
                 if (!err) {
                         return res.send(scenarioitems);
                 } else {
@@ -245,7 +245,7 @@ app.get(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function 
 // create scenarioitem
 app.post(basepath + '/projects/:projectid/scenarios/:scenarioid/items', function (req, res){ //xxx
         log_call(req);
-        return ScenarioModel.find({'scenarioid' : req.params.scenarioid}, function (err, scenario) {
+        return ScenarioModel.find({'scenarioid' : req.params.scenarioid, 'projectid' : req.params.projectid}, function (err, scenario) {
                 var scenarioitem = new ScenarioItemModel({
                         projectid: req.params.projectid,
                         scenarioid: req.params.scenarioid,
